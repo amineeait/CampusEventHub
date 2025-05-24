@@ -31,18 +31,16 @@
               <div class="mb-3">
                 {{ form.password.label(class="form-label") }}
                 {% if form.password.errors %}
-                  {{ form.password(class="form-control is-invalid") }}
+                  {{ form.password(class="form-control is-invalid", id="password-input") }}
                   <div class="invalid-feedback">
                     {% for error in form.password.errors %}
                       {{ error }}
                     {% endfor %}
                   </div>
                 {% else %}
-                  {{ form.password(class="form-control") }}
+                  {{ form.password(class="form-control", id="password-input") }}
                 {% endif %}
               </div>
-              
-
               
               <div class="mb-3 form-check">
                 {{ form.remember(class="form-check-input") }}
