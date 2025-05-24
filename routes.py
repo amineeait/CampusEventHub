@@ -18,6 +18,13 @@ def format_datetime_filter(value, format='%Y-%m-%d %H:%M'):
         return value.strftime(format)
     return ""
 
+@app.template_filter('nl2br')
+def nl2br_filter(value):
+    """Convert newlines to HTML line breaks."""
+    if value:
+        return value.replace('\n', '<br>')
+    return ""
+
 # Basic routes
 @app.route('/')
 def index():
