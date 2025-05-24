@@ -61,29 +61,46 @@
               <div class="mb-3">
                 {{ form.email.label(class="form-label") }}
                 {% if form.email.errors %}
-                  {{ form.email(class="form-control is-invalid") }}
-                  <div class="invalid-feedback">
+                  {{ form.email(class="form-control is-invalid", id="email-input") }}
+                  <div class="invalid-feedback" id="email-error">
                     {% for error in form.email.errors %}
                       {{ error }}
                     {% endfor %}
                   </div>
                 {% else %}
-                  {{ form.email(class="form-control") }}
+                  {{ form.email(class="form-control", id="email-input") }}
+                  <div class="invalid-feedback" id="email-error"></div>
+                {% endif %}
+              </div>
+              
+              <div class="mb-3">
+                {{ form.role.label(class="form-label") }}
+                {% if form.role.errors %}
+                  {{ form.role(class="form-select is-invalid") }}
+                  <div class="invalid-feedback">
+                    {% for error in form.role.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.role(class="form-select") }}
                 {% endif %}
               </div>
               
               <div class="mb-3">
                 {{ form.password.label(class="form-label") }}
                 {% if form.password.errors %}
-                  {{ form.password(class="form-control is-invalid") }}
+                  {{ form.password(class="form-control is-invalid", id="password-input") }}
                   <div class="invalid-feedback">
                     {% for error in form.password.errors %}
                       {{ error }}
                     {% endfor %}
                   </div>
                 {% else %}
-                  {{ form.password(class="form-control") }}
+                  {{ form.password(class="form-control", id="password-input") }}
+                  <div class="invalid-feedback" id="password-error"></div>
                 {% endif %}
+                <div id="password-strength" class="mt-1"></div>
                 <small class="form-text text-muted">Password must be at least 8 characters long.</small>
               </div>
               
@@ -116,4 +133,75 @@
       </div>
     </div>
   </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Email validation
+      const emailInput = document.getElementById('email-input');
+      const emailError = document.getElementById('email-error');
+      
+      emailInput.addEventListener('input', function() {
+        const email = this.value;
+        
+        // Check if email is valid
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          emailInput.classList.add('is-invalid');
+          emailError.textContent = 'Please enter a valid email address';
+          emailError.style.display = 'block';
+        } else {
+          emailInput.classList.remove('is-invalid');
+          emailError.style.display = 'none';
+        }
+      });
+      
+      // Password strength validation
+      const passwordInput = document.getElementById('password-input');
+      const passwordStrength = document.getElementById('password-strength');
+      const passwordError = document.getElementById('password-error');
+      
+      passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        
+        // Check password length
+        if (password.length < 8) {
+          passwordInput.classList.add('is-invalid');
+          passwordError.textContent = 'Password must be at least 8 characters long';
+          passwordError.style.display = 'block';
+          passwordStrength.innerHTML = '<div class="alert alert-danger py-1">Password too short</div>';
+        } else {
+          passwordInput.classList.remove('is-invalid');
+          passwordError.style.display = 'none';
+          
+          // Check password strength
+          let strength = 0;
+          if (password.match(/[a-z]+/)) strength += 1;
+          if (password.match(/[A-Z]+/)) strength += 1;
+          if (password.match(/[0-9]+/)) strength += 1;
+          if (password.match(/[^a-zA-Z0-9]+/)) strength += 1;
+          
+          // Display password strength
+          if (strength < 2) {
+            passwordStrength.innerHTML = '<div class="alert alert-danger py-1">Weak password</div>';
+          } else if (strength < 4) {
+            passwordStrength.innerHTML = '<div class="alert alert-warning py-1">Medium strength password</div>';
+          } else {
+            passwordStrength.innerHTML = '<div class="alert alert-success py-1">Strong password</div>';
+          }
+        }
+      });
+      
+      // Password confirmation validation
+      const confirmPasswordInput = document.getElementById('confirm_password');
+      
+      if (confirmPasswordInput) {
+        confirmPasswordInput.addEventListener('input', function() {
+          if (this.value !== passwordInput.value) {
+            this.classList.add('is-invalid');
+          } else {
+            this.classList.remove('is-invalid');
+          }
+        });
+      }
+    });
+  </script>
 {% endblock %}

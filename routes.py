@@ -64,12 +64,15 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
+        # Get the selected role from the form
+        selected_role = form.role.data
+        
         user = User(
             username=form.username.data,
             email=form.email.data,
             first_name=form.first_name.data,
             last_name=form.last_name.data,
-            role=UserRole.STUDENT
+            role=selected_role
         )
         user.set_password(form.password.data)
         db.session.add(user)
