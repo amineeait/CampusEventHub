@@ -1,0 +1,112 @@
+/* Custom CSS for Campus Event Management */
+
+/* Navbar Styling */
+.navbar-university {
+  background-color: var(--bs-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer Styling */
+.footer {
+  background-color: var(--bs-dark);
+  color: white;
+  padding: 2rem 0;
+  margin-top: 3rem;
+}
+
+/* Card Styling */
+.dashboard-card {
+  transition: transform 0.3s ease;
+  height: 100%;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+}
+
+.dashboard-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Event Cards */
+.event-card {
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.event-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* Form styling */
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Star ratings */
+.rating-stars {
+  color: var(--bs-gray-500);
+}
+
+.rating-stars .fas.fa-star.text-warning {
+  color: #FFD700 !important;
+}
+
+/* Calendar styling */
+.fc-event {
+  cursor: pointer;
+}
+
+/* Profile image styling */
+.profile-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 5px solid var(--bs-light);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Stats cards */
+.stats-card {
+  border-left: 4px solid var(--bs-primary);
+  transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Attendance QR code */
+.qr-container {
+  max-width: 250px;
+  margin: 0 auto;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+}
+
+/* Utility classes */
+.bg-gradient-primary {
+  background: linear-gradient(to right, var(--bs-primary), var(--bs-info));
+}
+
+.bg-gradient-success {
+  background: linear-gradient(to right, var(--bs-success), var(--bs-info));
+}
+
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

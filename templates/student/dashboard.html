@@ -1,0 +1,307 @@
+{% extends "layout.html" %}
+
+{% block title %}Student Dashboard - Campus Event Management{% endblock %}
+
+{% block content %}
+  <!-- Student Dashboard Header -->
+  <div class="student-dashboard-header">
+    <div class="container">
+      <h1 class="display-5 fw-bold">My Dashboard</h1>
+      <p class="lead">Track your events and discover new activities on campus</p>
+    </div>
+  </div>
+  
+  <div class="container py-5">
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-sm stats-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Registered Events</h6>
+                <h2 class="mb-0">{{ user_stats.registered_count }}</h2>
+              </div>
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-ticket-alt fa-2x text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-sm stats-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Upcoming Events</h6>
+                <h2 class="mb-0">{{ user_stats.upcoming_registered }}</h2>
+              </div>
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-sm stats-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Past Events</h6>
+                <h2 class="mb-0">{{ user_stats.past_registered }}</h2>
+              </div>
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-history fa-2x text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Main Content Column -->
+      <div class="col-lg-8 mb-4">
+        <!-- Upcoming Events -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">My Upcoming Events</h4>
+            <a href="{{ url_for('my_events') }}" class="btn btn-sm btn-outline-primary">View All</a>
+          </div>
+          <div class="card-body">
+            {% if upcoming_events %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Event Name</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Location</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for event in upcoming_events %}
+                      <tr>
+                        <td>
+                          <a href="{{ url_for('event_detail', event_id=event.id) }}" class="text-decoration-none">
+                            {{ event.title }}
+                          </a>
+                        </td>
+                        <td>{{ event.start_time|format_datetime('%a, %b %d, %Y') }}</td>
+                        <td>{{ event.start_time|format_datetime('%I:%M %p') }}</td>
+                        <td>{{ event.location }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> You're not registered for any upcoming events.
+                <a href="{{ url_for('events_list') }}" class="alert-link">Browse events</a> to find something interesting!
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Recommended Events -->
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4 class="mb-0">Recommended For You</h4>
+          </div>
+          <div class="card-body">
+            {% if recommended_events %}
+              <div class="row">
+                {% for event in recommended_events %}
+                  <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                      {% if event.poster %}
+                        <img src="{{ url_for('static', filename=event.poster) }}" class="card-img-top" alt="{{ event.title }}" style="height: 120px; object-fit: cover;">
+                      {% else %}
+                        <img src="https://pixabay.com/get/g3563810901840bd4be174af5c25e01fdf5a3580779b0440e2607629ba68e69fa55f2b032fce9f3c055a23aa4320e798333ea9a6bac26d2886372680d7ae7b5ea_1280.jpg" class="card-img-top" alt="{{ event.title }}" style="height: 120px; object-fit: cover;">
+                      {% endif %}
+                      <div class="card-body">
+                        <h6 class="card-title">{{ event.title }}</h6>
+                        <p class="card-text small text-muted">
+                          <i class="fas fa-calendar-alt me-1"></i> {{ event.start_time|format_datetime('%b %d') }}<br>
+                          <i class="fas fa-map-marker-alt me-1"></i> {{ event.location }}
+                        </p>
+                        <div class="d-grid">
+                          <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No recommended events at this time.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">Quick Actions</h4>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <a href="{{ url_for('events_list') }}" class="btn btn-outline-primary">
+                <i class="fas fa-search me-2"></i> Browse Events
+              </a>
+              <a href="{{ url_for('events_calendar') }}" class="btn btn-outline-primary">
+                <i class="fas fa-calendar-alt me-2"></i> View Calendar
+              </a>
+              <a href="{{ url_for('my_events') }}" class="btn btn-outline-primary">
+                <i class="fas fa-ticket-alt me-2"></i> My Registrations
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Upcoming Campus Events -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">Campus Highlights</h4>
+          </div>
+          <div class="card-body p-0">
+            <div id="campusEventsCarousel" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <img src="https://pixabay.com/get/g63a35105ea74d1eb39cc50d0107cc23df8bd31581fe3b7d475f83ccb0f1457c9b1206f1590614450da093d3560ab11d3c5c209f4df3d194388c79926afdf4228_1280.jpg" class="d-block w-100" alt="Campus Event" style="height: 200px; object-fit: cover;">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Discover Events</h5>
+                    <p>Find exciting activities on campus</p>
+                  </div>
+                </div>
+                <div class="carousel-item">
+                  <img src="https://pixabay.com/get/g68e19d5f33fc789339d2ab38166e8788fb73db9d98759f84ee8a5aafa15bd9b9a5a7a908b78d6a714502e9b4f348dea288825e4359fe97a7b8af49eb56884dea_1280.jpg" class="d-block w-100" alt="Registration" style="height: 200px; object-fit: cover;">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Register Online</h5>
+                    <p>Quick and easy registration</p>
+                  </div>
+                </div>
+                <div class="carousel-item">
+                  <img src="https://pixabay.com/get/g46d20e70066bb953edf015a39c693896f701dd51981abbca783e245e539e7a207cb1a2ee14da829e74a2cf769a49ead335518b238a3b59c49c2823c9f237c503_1280.jpg" class="d-block w-100" alt="Club Meetings" style="height: 200px; object-fit: cover;">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Join Clubs</h5>
+                    <p>Connect with like-minded students</p>
+                  </div>
+                </div>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#campusEventsCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#campusEventsCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Calendar Mini-View -->
+        <div class="card shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Calendar</h4>
+            <a href="{{ url_for('events_calendar') }}" class="btn btn-sm btn-outline-primary">Full View</a>
+          </div>
+          <div class="card-body">
+            <div id="mini-calendar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Simple mini calendar (just for display)
+      const date = new Date();
+      const currentMonth = date.toLocaleString('default', { month: 'long' });
+      const currentYear = date.getFullYear();
+      
+      const miniCalendar = document.getElementById('mini-calendar');
+      miniCalendar.innerHTML = `
+        <div class="text-center mb-2">
+          <h5>${currentMonth} ${currentYear}</h5>
+        </div>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Su</th>
+              <th>Mo</th>
+              <th>Tu</th>
+              <th>We</th>
+              <th>Th</th>
+              <th>Fr</th>
+              <th>Sa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td></td>
+              <td>1</td>
+              <td>2</td>
+              <td>3</td>
+              <td>4</td>
+              <td>5</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>7</td>
+              <td>8</td>
+              <td>9</td>
+              <td>10</td>
+              <td>11</td>
+              <td>12</td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>14</td>
+              <td>15</td>
+              <td class="bg-primary text-white">16</td>
+              <td>17</td>
+              <td>18</td>
+              <td>19</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>21</td>
+              <td class="bg-primary text-white">22</td>
+              <td>23</td>
+              <td>24</td>
+              <td>25</td>
+              <td>26</td>
+            </tr>
+            <tr>
+              <td>27</td>
+              <td>28</td>
+              <td>29</td>
+              <td>30</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="text-center mt-2">
+          <small class="text-muted">Click on "Full View" for interactive calendar</small>
+        </div>
+      `;
+    });
+  </script>
+{% endblock %}

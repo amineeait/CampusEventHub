@@ -1,0 +1,195 @@
+{% extends "layout.html" %}
+
+{% block title %}Event Check-in - {{ event.title }}{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h1 class="mb-3">Event Check-in</h1>
+        <h3>{{ event.title }}</h3>
+        <p class="text-muted">
+          <i class="fas fa-calendar-alt me-2"></i> {{ event.start_time|format_datetime('%A, %B %d, %Y') }}<br>
+          <i class="fas fa-clock me-2"></i> {{ event.start_time|format_datetime('%I:%M %p') }} - {{ event.end_time|format_datetime('%I:%M %p') }}<br>
+          <i class="fas fa-map-marker-alt me-2"></i> {{ event.location }}
+        </p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-outline-primary">
+          <i class="fas fa-info-circle me-1"></i> Event Details
+        </a>
+        <a href="{{ url_for('organizer_events') }}" class="btn btn-outline-secondary ms-2">
+          <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Check-in Form -->
+      <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Check-in Attendee</h4>
+          </div>
+          <div class="card-body">
+            <form id="check-in-form" method="POST" action="{{ url_for('event_check_in', event_id=event.id) }}">
+              {{ form.hidden_tag() }}
+              
+              <div class="mb-4">
+                <label for="full_name" class="form-label">Enter Attendee's Full Name</label>
+                {% if form.full_name.errors %}
+                  {{ form.full_name(class="form-control is-invalid") }}
+                  <div class="invalid-feedback">
+                    {% for error in form.full_name.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.full_name(class="form-control") }}
+                {% endif %}
+                <small class="form-text text-muted">Enter the full name exactly as it appears in the registration.</small>
+              </div>
+              
+              <div class="d-grid">
+                {{ form.submit(class="btn btn-primary btn-check-in") }}
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <div class="card shadow-sm mt-4">
+          <div class="card-header">
+            <h4 class="mb-0">Check-in Stats</h4>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-6">
+                <h2>{{ registered_users|length }}</h2>
+                <p class="text-muted mb-0">Registered</p>
+              </div>
+              <div class="col-6">
+                <h2>{{ checked_in_users|length }}</h2>
+                <p class="text-muted mb-0">Checked In</p>
+              </div>
+            </div>
+            
+            <div class="progress mt-3">
+              {% if registered_users %}
+                <div class="progress-bar bg-primary" role="progressbar" 
+                  style="width: {{ (checked_in_users|length / registered_users|length * 100)|round }}%;" 
+                  aria-valuenow="{{ checked_in_users|length }}" aria-valuemin="0" aria-valuemax="{{ registered_users|length }}">
+                  {{ (checked_in_users|length / registered_users|length * 100)|round|int }}%
+                </div>
+              {% else %}
+                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Registered Users List -->
+      <div class="col-lg-8">
+        <div class="card shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Registered Attendees</h4>
+            <div class="input-group" style="max-width: 300px;">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" id="searchAttendees" placeholder="Search attendees...">
+            </div>
+          </div>
+          <div class="card-body">
+            {% if registered_users %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Registration Date</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="registered-users-list">
+                    {% for user in registered_users %}
+                      <tr>
+                        <td>{{ user.get_full_name() }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                          {% for reg in user.registrations %}
+                            {% if reg.event_id == event.id %}
+                              {{ reg.registration_time|format_datetime('%b %d, %Y') }}
+                            {% endif %}
+                          {% endfor %}
+                        </td>
+                        <td>
+                          {% if user in checked_in_users %}
+                            <span class="badge bg-success">Checked In</span>
+                          {% else %}
+                            <span class="badge bg-secondary">Not Checked In</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if user not in checked_in_users %}
+                            <button type="button" class="btn btn-sm btn-primary check-in-btn" 
+                              data-name="{{ user.get_full_name() }}">
+                              Check In
+                            </button>
+                          {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-success" disabled>
+                              <i class="fas fa-check"></i> Done
+                            </button>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No attendees have registered for this event yet.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Search functionality
+      const searchInput = document.getElementById('searchAttendees');
+      const tableRows = document.querySelectorAll('#registered-users-list tr');
+      
+      searchInput.addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+          const name = row.cells[0].textContent.toLowerCase();
+          const email = row.cells[1].textContent.toLowerCase();
+          
+          if (name.includes(searchTerm) || email.includes(searchTerm)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+      
+      // Quick check-in buttons
+      const checkInButtons = document.querySelectorAll('.check-in-btn');
+      const fullNameInput = document.getElementById('full_name');
+      
+      checkInButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const name = this.getAttribute('data-name');
+          fullNameInput.value = name;
+          document.getElementById('check-in-form').submit();
+        });
+      });
+    });
+  </script>
+{% endblock %}

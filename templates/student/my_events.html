@@ -1,0 +1,157 @@
+{% extends "layout.html" %}
+
+{% block title %}My Events - Campus Event Management{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h1 class="mb-3">My Events</h1>
+        <p class="text-muted">View all events you've registered for</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('events_list') }}" class="btn btn-primary">
+          <i class="fas fa-search me-1"></i> Find Events
+        </a>
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary ms-2">
+          <i class="fas fa-arrow-left me-1"></i> Dashboard
+        </a>
+      </div>
+    </div>
+    
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="myEventsTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" 
+          type="button" role="tab" aria-controls="upcoming" aria-selected="true">
+          Upcoming Events
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" 
+          type="button" role="tab" aria-controls="past" aria-selected="false">
+          Past Events
+        </button>
+      </li>
+    </ul>
+    
+    <div class="tab-content" id="myEventsTabContent">
+      <!-- Upcoming Events Tab -->
+      <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            {% if upcoming_events %}
+              <div class="row">
+                {% for event in upcoming_events %}
+                  <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                      <div class="row g-0">
+                        <div class="col-md-4">
+                          {% if event.poster %}
+                            <img src="{{ url_for('static', filename=event.poster) }}" class="img-fluid rounded-start h-100" alt="{{ event.title }}" style="object-fit: cover;">
+                          {% else %}
+                            <img src="https://pixabay.com/get/g10437133c29aa5bbe88100155bd2682a5ca69020b8af6c2719e5cbb867e13b91ec9ec5198a80d788d0d7899c47f8e3f194e38442941077a604bbb901a30a62da_1280.jpg" class="img-fluid rounded-start h-100" alt="{{ event.title }}" style="object-fit: cover;">
+                          {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                          <div class="card-body">
+                            <h5 class="card-title">{{ event.title }}</h5>
+                            <p class="card-text">
+                              <i class="fas fa-calendar-alt me-1 text-primary"></i> {{ event.start_time|format_datetime('%a, %b %d, %Y') }}<br>
+                              <i class="fas fa-clock me-1 text-primary"></i> {{ event.start_time|format_datetime('%I:%M %p') }}<br>
+                              <i class="fas fa-map-marker-alt me-1 text-primary"></i> {{ event.location }}
+                            </p>
+                            <div class="d-flex justify-content-between mt-3">
+                              <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                              <form action="{{ url_for('unregister_from_event', event_id=event.id) }}" method="post">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Unregister</button>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> You're not registered for any upcoming events.
+                <a href="{{ url_for('events_list') }}" class="alert-link">Browse events</a> to find something interesting!
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Past Events Tab -->
+      <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            {% if past_events %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Event Name</th>
+                      <th>Date</th>
+                      <th>Location</th>
+                      <th>Attendance</th>
+                      <th>Rating</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for event in past_events %}
+                      <tr>
+                        <td>
+                          <a href="{{ url_for('event_detail', event_id=event.id) }}" class="text-decoration-none">
+                            {{ event.title }}
+                          </a>
+                        </td>
+                        <td>{{ event.start_time|format_datetime('%b %d, %Y') }}</td>
+                        <td>{{ event.location }}</td>
+                        <td>
+                          {% if event.id in attended_event_ids %}
+                            <span class="badge bg-success">Attended</span>
+                          {% else %}
+                            <span class="badge bg-secondary">Not Attended</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if event.id in rated_events %}
+                            <div class="rating-stars">
+                              {% for i in range(1, 6) %}
+                                <i class="fas fa-star {% if i <= rated_events[event.id].rating %}text-warning{% else %}text-secondary{% endif %}"></i>
+                              {% endfor %}
+                            </div>
+                          {% else %}
+                            <span class="text-muted">Not rated</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i> View
+                          </a>
+                          {% if event.id in attended_event_ids and event.id not in rated_events %}
+                            <a href="{{ url_for('event_detail', event_id=event.id) }}#rate" class="btn btn-sm btn-outline-warning ms-1">
+                              <i class="fas fa-star"></i> Rate
+                            </a>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> You haven't attended any events yet.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

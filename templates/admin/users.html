@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+
+{% block title %}Manage Users - Admin Dashboard{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h1 class="mb-3">Manage Users</h1>
+        <p class="text-muted">View and manage all users on the platform</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+    
+    <!-- Filter and Search -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <form class="row g-3">
+          <div class="col-md-6">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" id="searchUser" placeholder="Search users...">
+            </div>
+          </div>
+          
+          <div class="col-md-3">
+            <select class="form-select" id="filterRole">
+              <option value="">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="organizer">Organizer</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+          
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Users Table -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+                <tr>
+                  <td>{{ user.id }}</td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      {% if user.profile_picture %}
+                        <img src="{{ url_for('static', filename=user.profile_picture) }}" class="rounded-circle me-2" width="32" height="32" alt="{{ user.get_full_name() }}">
+                      {% else %}
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                          {{ user.first_name[0] }}{{ user.last_name[0] }}
+                        </div>
+                      {% endif %}
+                      {{ user.get_full_name() }}
+                    </div>
+                  </td>
+                  <td>{{ user.email }}</td>
+                  <td>{{ user.username }}</td>
+                  <td>
+                    <span class="badge bg-{{ 'primary' if user.is_admin() else 'success' if user.is_organizer() else 'secondary' }}">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                  <td>{{ user.created_at|format_datetime('%b %d, %Y') }}</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="userActionDropdown{{ user.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                        Actions
+                      </button>
+                      <ul class="dropdown-menu" aria-labelledby="userActionDropdown{{ user.id }}">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-eye me-2"></i> View Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li class="dropdown-header">Change Role</li>
+                        <li>
+                          <a class="dropdown-item {% if user.is_admin() %}active{% endif %}" 
+                             href="{{ url_for('change_user_role', user_id=user.id, role='admin') }}">
+                            <i class="fas fa-user-shield me-2"></i> Admin
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item {% if user.is_organizer() %}active{% endif %}" 
+                             href="{{ url_for('change_user_role', user_id=user.id, role='organizer') }}">
+                            <i class="fas fa-user-tie me-2"></i> Organizer
+                          </a>
+                        </li>
+                        <li>
+                          <a class="dropdown-item {% if user.is_student() %}active{% endif %}" 
+                             href="{{ url_for('change_user_role', user_id=user.id, role='student') }}">
+                            <i class="fas fa-user-graduate me-2"></i> Student
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Search functionality
+      const searchInput = document.getElementById('searchUser');
+      const filterRole = document.getElementById('filterRole');
+      const tableRows = document.querySelectorAll('tbody tr');
+      
+      function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const roleTerm = filterRole.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+          const name = row.cells[1].textContent.toLowerCase();
+          const email = row.cells[2].textContent.toLowerCase();
+          const username = row.cells[3].textContent.toLowerCase();
+          const role = row.cells[4].textContent.toLowerCase();
+          
+          const matchesSearch = name.includes(searchTerm) || 
+                               email.includes(searchTerm) || 
+                               username.includes(searchTerm);
+          const matchesRole = roleTerm === '' || role.includes(roleTerm);
+          
+          row.style.display = (matchesSearch && matchesRole) ? '' : 'none';
+        });
+      }
+      
+      searchInput.addEventListener('keyup', filterTable);
+      filterRole.addEventListener('change', filterTable);
+    });
+  </script>
+{% endblock %}

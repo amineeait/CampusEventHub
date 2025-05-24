@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Event - Campus Event Management{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Edit Event</h3>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="{{ url_for('edit_event', event_id=event.id) }}" enctype="multipart/form-data">
+              {{ form.hidden_tag() }}
+              
+              <div class="mb-3">
+                {{ form.title.label(class="form-label") }}
+                {% if form.title.errors %}
+                  {{ form.title(class="form-control is-invalid") }}
+                  <div class="invalid-feedback">
+                    {% for error in form.title.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.title(class="form-control") }}
+                {% endif %}
+              </div>
+              
+              <div class="mb-3">
+                {{ form.club_id.label(class="form-label") }}
+                {% if form.club_id.errors %}
+                  {{ form.club_id(class="form-select is-invalid") }}
+                  <div class="invalid-feedback">
+                    {% for error in form.club_id.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.club_id(class="form-select") }}
+                {% endif %}
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  {{ form.start_time.label(class="form-label") }}
+                  {% if form.start_time.errors %}
+                    {{ form.start_time(class="form-control is-invalid") }}
+                    <div class="invalid-feedback">
+                      {% for error in form.start_time.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form.start_time(class="form-control") }}
+                  {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  {{ form.end_time.label(class="form-label") }}
+                  {% if form.end_time.errors %}
+                    {{ form.end_time(class="form-control is-invalid") }}
+                    <div class="invalid-feedback">
+                      {% for error in form.end_time.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form.end_time(class="form-control") }}
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                {{ form.location.label(class="form-label") }}
+                {% if form.location.errors %}
+                  {{ form.location(class="form-control is-invalid") }}
+                  <div class="invalid-feedback">
+                    {% for error in form.location.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.location(class="form-control") }}
+                {% endif %}
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  {{ form.category.label(class="form-label") }}
+                  {% if form.category.errors %}
+                    {{ form.category(class="form-select is-invalid") }}
+                    <div class="invalid-feedback">
+                      {% for error in form.category.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form.category(class="form-select") }}
+                  {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  {{ form.max_participants.label(class="form-label") }}
+                  {% if form.max_participants.errors %}
+                    {{ form.max_participants(class="form-control is-invalid") }}
+                    <div class="invalid-feedback">
+                      {% for error in form.max_participants.errors %}
+                        {{ error }}
+                      {% endfor %}
+                    </div>
+                  {% else %}
+                    {{ form.max_participants(class="form-control", placeholder="Leave empty for unlimited") }}
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                {{ form.description.label(class="form-label") }}
+                {% if form.description.errors %}
+                  {{ form.description(class="form-control is-invalid", rows=6) }}
+                  <div class="invalid-feedback">
+                    {% for error in form.description.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.description(class="form-control", rows=6) }}
+                {% endif %}
+              </div>
+              
+              <div class="mb-4">
+                <div class="row">
+                  <div class="col-md-8">
+                    {{ form.poster.label(class="form-label") }}
+                    {% if form.poster.errors %}
+                      {{ form.poster(class="form-control is-invalid") }}
+                      <div class="invalid-feedback">
+                        {% for error in form.poster.errors %}
+                          {{ error }}
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ form.poster(class="form-control") }}
+                    {% endif %}
+                    <small class="form-text text-muted">Upload a new image to replace the current poster.</small>
+                  </div>
+                  
+                  <div class="col-md-4">
+                    {% if event.poster %}
+                      <img src="{{ url_for('static', filename=event.poster) }}" class="img-thumbnail" alt="Current poster" style="max-height: 150px;">
+                      <p class="small text-muted mt-1">Current poster</p>
+                    {% else %}
+                      <div class="alert alert-info">No poster image</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="d-flex justify-content-between">
+                <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                {{ form.submit(class="btn btn-primary") }}
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

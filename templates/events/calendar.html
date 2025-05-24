@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block title %}Event Calendar - Campus Event Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  .fc-event {
+    cursor: pointer;
+  }
+  .calendar-container {
+    background-color: white;
+    border-radius: 5px;
+    padding: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h1 class="mb-3">Event Calendar</h1>
+        <p class="text-muted">View all campus events in a calendar format. Click on an event to see details.</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('events_list') }}" class="btn btn-outline-primary">
+          <i class="fas fa-list me-1"></i> List View
+        </a>
+        {% if current_user.is_authenticated and (current_user.is_organizer() or current_user.is_admin()) %}
+          <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Create Event
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="card shadow-sm">
+      <div class="card-body p-md-4">
+        <div id="calendar" class="calendar-container"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+{% endblock %}

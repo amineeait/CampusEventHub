@@ -1,0 +1,317 @@
+{% extends "layout.html" %}
+
+{% block title %}Organizer Dashboard - Campus Event Management{% endblock %}
+
+{% block content %}
+  <!-- Organizer Dashboard Header -->
+  <div class="organizer-dashboard-header">
+    <div class="container">
+      <h1 class="display-5 fw-bold">Organizer Dashboard</h1>
+      <p class="lead">Manage your events and track attendance</p>
+    </div>
+  </div>
+  
+  <div class="container py-5">
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+      <div class="col-md-3 mb-3">
+        <div class="card shadow-sm stats-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Total Events</h6>
+                <h2 class="mb-0">{{ event_stats.total }}</h2>
+              </div>
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3 mb-3">
+        <div class="card shadow-sm stats-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Upcoming</h6>
+                <h2 class="mb-0">{{ event_stats.upcoming }}</h2>
+              </div>
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-hourglass-start fa-2x text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3 mb-3">
+        <div class="card shadow-sm stats-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Ongoing</h6>
+                <h2 class="mb-0">{{ event_stats.ongoing }}</h2>
+              </div>
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-clock fa-2x text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3 mb-3">
+        <div class="card shadow-sm stats-card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="text-muted mb-1">Past Events</h6>
+                <h2 class="mb-0">{{ event_stats.past }}</h2>
+              </div>
+              <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                <i class="fas fa-history fa-2x text-primary"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Left Column -->
+      <div class="col-lg-8 mb-4">
+        <!-- Quick Actions -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">Quick Actions</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <a href="{{ url_for('create_event') }}" class="card h-100 text-decoration-none text-reset">
+                  <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 mx-auto mb-3" style="width: fit-content;">
+                      <i class="fas fa-calendar-plus fa-2x text-primary"></i>
+                    </div>
+                    <h5>Create Event</h5>
+                    <p class="text-muted small">Set up a new campus event</p>
+                  </div>
+                </a>
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <a href="{{ url_for('organizer_events') }}" class="card h-100 text-decoration-none text-reset">
+                  <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 mx-auto mb-3" style="width: fit-content;">
+                      <i class="fas fa-tasks fa-2x text-primary"></i>
+                    </div>
+                    <h5>Manage Events</h5>
+                    <p class="text-muted small">Edit, delete, or check attendance</p>
+                  </div>
+                </a>
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <a href="{{ url_for('events_calendar') }}" class="card h-100 text-decoration-none text-reset">
+                  <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 mx-auto mb-3" style="width: fit-content;">
+                      <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+                    </div>
+                    <h5>Calendar</h5>
+                    <p class="text-muted small">View events in calendar format</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Upcoming Events -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Upcoming Events</h4>
+            <a href="{{ url_for('organizer_events') }}" class="btn btn-sm btn-outline-primary">View All</a>
+          </div>
+          <div class="card-body">
+            {% if events|selectattr('is_upcoming')|list %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Event Name</th>
+                      <th>Date</th>
+                      <th>Location</th>
+                      <th>Registrations</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for event in events|selectattr('is_upcoming')|list %}
+                      <tr>
+                        <td>
+                          <a href="{{ url_for('event_detail', event_id=event.id) }}" class="text-decoration-none">
+                            {{ event.title }}
+                          </a>
+                        </td>
+                        <td>{{ event.start_time|format_datetime('%b %d, %Y %I:%M %p') }}</td>
+                        <td>{{ event.location }}</td>
+                        <td>{{ event.get_registration_count() }}</td>
+                        <td>
+                          <div class="btn-group" role="group">
+                            <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-sm btn-outline-primary">
+                              <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('edit_event', event_id=event.id) }}" class="btn btn-sm btn-outline-secondary">
+                              <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('event_check_in', event_id=event.id) }}" class="btn btn-sm btn-outline-success">
+                              <i class="fas fa-clipboard-check"></i>
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> You don't have any upcoming events.
+                <a href="{{ url_for('create_event') }}" class="alert-link">Create one now</a>.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Recent Registrations -->
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4 class="mb-0">Recent Registrations</h4>
+          </div>
+          <div class="card-body">
+            {% if recent_registrations %}
+              <div class="list-group">
+                {% for registration in recent_registrations %}
+                  <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">
+                        <a href="{{ url_for('event_detail', event_id=registration.event.id) }}" class="text-decoration-none">
+                          {{ registration.event.title }}
+                        </a>
+                      </h6>
+                      <small>{{ registration.registration_time|format_datetime('%b %d, %Y') }}</small>
+                    </div>
+                    <p class="mb-1">
+                      <strong>{{ registration.user.get_full_name() }}</strong> registered for this event
+                    </p>
+                    <small class="text-muted">
+                      <i class="fas fa-envelope me-1"></i> {{ registration.user.email }}
+                    </small>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No recent registrations.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Column -->
+      <div class="col-lg-4">
+        <!-- Event Analytics -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">Event Categories</h4>
+          </div>
+          <div class="card-body">
+            {% if event_stats.categories %}
+              <canvas id="event-categories-chart" height="250" 
+                data-labels='{{ event_stats.categories.keys()|list|tojson }}'
+                data-values='{{ event_stats.categories.values()|list|tojson }}'>
+              </canvas>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No data available.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Your Clubs -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">Your Clubs</h4>
+          </div>
+          <div class="card-body">
+            {% if clubs %}
+              <div class="list-group">
+                {% for club in clubs %}
+                  <div class="list-group-item">
+                    <div class="d-flex align-items-center">
+                      {% if club.logo %}
+                        <img src="{{ url_for('static', filename=club.logo) }}" alt="{{ club.name }}" class="me-3" width="48" height="48">
+                      {% else %}
+                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                          <i class="fas fa-university"></i>
+                        </div>
+                      {% endif %}
+                      <div>
+                        <h6 class="mb-0">{{ club.name }}</h6>
+                        <small class="text-muted">{{ club.events|length }} events</small>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> You are not administering any clubs.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Upcoming Check-ins -->
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4 class="mb-0">Upcoming Check-ins</h4>
+          </div>
+          <div class="card-body">
+            {% set upcoming_checkins = events|selectattr('is_upcoming')|selectattr('start_time', 'le', now + timedelta(days=7))|list %}
+            {% if upcoming_checkins %}
+              <div class="list-group">
+                {% for event in upcoming_checkins[:5] %}
+                  <a href="{{ url_for('event_check_in', event_id=event.id) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">{{ event.title }}</h6>
+                      <small>{{ event.start_time|format_datetime('%b %d') }}</small>
+                    </div>
+                    <p class="mb-1 small">
+                      <i class="fas fa-users me-1"></i> {{ event.get_registration_count() }} registered
+                    </p>
+                    <small class="text-muted">
+                      <i class="fas fa-clock me-1"></i> {{ event.start_time|format_datetime('%I:%M %p') }}
+                    </small>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i> No upcoming check-ins in the next 7 days.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+{% endblock %}

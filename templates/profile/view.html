@@ -1,0 +1,192 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ user.get_full_name() }} - Profile{% endblock %}
+
+{% block content %}
+  <!-- Profile Header -->
+  <div class="profile-header py-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-3 text-center">
+          {% if user.profile_picture %}
+            <img src="{{ url_for('static', filename=user.profile_picture) }}" alt="{{ user.get_full_name() }}" class="profile-image">
+          {% else %}
+            <img src="https://pixabay.com/get/g1f4c9eb7beea6fd57e78e0bd9a4dd969d2c6fa1203bfacbd5feaed165a3c4dda12f6b0176eff1515fce70b468a74b45409ea6d148e3088e39f2027a1f6d07bb4_1280.jpg" alt="{{ user.get_full_name() }}" class="profile-image">
+          {% endif %}
+        </div>
+        <div class="col-md-9">
+          <h1>{{ user.get_full_name() }}</h1>
+          <p class="text-muted mb-2">
+            <i class="fas fa-user me-2"></i> @{{ user.username }}
+            <span class="ms-3"><i class="fas fa-envelope me-2"></i> {{ user.email }}</span>
+          </p>
+          <p class="mb-2">
+            <span class="badge bg-primary">{{ user.role|capitalize }}</span>
+            <span class="text-muted ms-2">Member since {{ user.created_at|format_datetime('%B %Y') }}</span>
+          </p>
+          {% if user.id == current_user.id %}
+            <div class="mt-3">
+              <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-1"></i> Edit Profile
+              </a>
+              <a href="{{ url_for('change_password') }}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-key me-1"></i> Change Password
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Profile Content -->
+  <div class="container py-5">
+    <div class="row">
+      <!-- Left Column -->
+      <div class="col-lg-4 mb-4">
+        <!-- Bio Section -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header">
+            <h4 class="mb-0">About</h4>
+          </div>
+          <div class="card-body">
+            {% if user.bio %}
+              <p>{{ user.bio|nl2br }}</p>
+            {% else %}
+              <p class="text-muted">No bio information available.</p>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Role-specific information -->
+        {% if user.is_organizer() or user.is_admin() %}
+          <!-- Clubs Section -->
+          <div class="card shadow-sm">
+            <div class="card-header">
+              <h4 class="mb-0">Clubs</h4>
+            </div>
+            <div class="card-body">
+              {% if user.clubs %}
+                <ul class="list-group list-group-flush">
+                  {% for club in user.clubs %}
+                    <li class="list-group-item d-flex align-items-center">
+                      {% if club.logo %}
+                        <img src="{{ url_for('static', filename=club.logo) }}" alt="{{ club.name }}" class="me-3" width="40" height="40">
+                      {% else %}
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                          <i class="fas fa-university"></i>
+                        </div>
+                      {% endif %}
+                      <div>
+                        <h6 class="mb-0">{{ club.name }}</h6>
+                        <small class="text-muted">Club Administrator</small>
+                      </div>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted">No clubs administered.</p>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Right Column -->
+      <div class="col-lg-8">
+        <!-- Upcoming Events Section -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{% if user.id == current_user.id %}My Events{% else %}{{ user.first_name }}'s Events{% endif %}</h4>
+            {% if user.id == current_user.id %}
+              <a href="{{ url_for('my_events') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            {% if user.organized_events %}
+              <h5 class="mb-3">{% if user.id == current_user.id %}Events I'm Organizing{% else %}Events Organized{% endif %}</h5>
+              <div class="row">
+                {% for event in user.organized_events[:3] %}
+                  <div class="col-md-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                      {% if event.poster %}
+                        <img src="{{ url_for('static', filename=event.poster) }}" class="card-img-top" alt="{{ event.title }}" style="height: 120px; object-fit: cover;">
+                      {% else %}
+                        <img src="https://pixabay.com/get/g9bdb65640c1a4f8352aae9c0f4141c9c6507bf9c2d4b01787cedf01b2fc7d6f2ab3bc8efb94f64a74c3298ed680892b435d7783dc05525e2594e64b3c4674f3b_1280.jpg" class="card-img-top" alt="{{ event.title }}" style="height: 120px; object-fit: cover;">
+                      {% endif %}
+                      <div class="card-body">
+                        <h6 class="card-title">{{ event.title }}</h6>
+                        <p class="card-text small text-muted">
+                          <i class="fas fa-calendar-alt me-1"></i> {{ event.start_time|format_datetime('%b %d, %Y') }}
+                        </p>
+                        <a href="{{ url_for('event_detail', event_id=event.id) }}" class="stretched-link"></a>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted">No events organized.</p>
+            {% endif %}
+            
+            {% if user.registrations %}
+              <hr>
+              <h5 class="mb-3">{% if user.id == current_user.id %}Events I'm Attending{% else %}Events Attending{% endif %}</h5>
+              <div class="list-group">
+                {% for registration in user.registrations[:5] %}
+                  <a href="{{ url_for('event_detail', event_id=registration.event.id) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">{{ registration.event.title }}</h6>
+                      <small>{{ registration.event.start_time|format_datetime('%b %d, %Y') }}</small>
+                    </div>
+                    <p class="mb-1 small">{{ registration.event.location }}</p>
+                    <small class="text-muted">
+                      <i class="fas fa-clock me-1"></i> {{ registration.event.start_time|format_datetime('%I:%M %p') }}
+                    </small>
+                  </a>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Activity Section -->
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4 class="mb-0">Activity</h4>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              {% if user.ratings %}
+                {% for rating in user.ratings[:5] %}
+                  <li class="list-group-item">
+                    <div class="d-flex">
+                      <div class="me-3">
+                        <span class="badge bg-primary rounded-circle">
+                          <i class="fas fa-star"></i>
+                        </span>
+                      </div>
+                      <div>
+                        <p class="mb-1">
+                          Rated <a href="{{ url_for('event_detail', event_id=rating.event.id) }}">{{ rating.event.title }}</a>
+                          <span class="rating-stars ms-2">
+                            {% for i in range(1, 6) %}
+                              <i class="fas fa-star {% if i <= rating.rating %}text-warning{% else %}text-secondary{% endif %}"></i>
+                            {% endfor %}
+                          </span>
+                        </p>
+                        <small class="text-muted">{{ rating.created_at|format_datetime('%b %d, %Y') }}</small>
+                      </div>
+                    </div>
+                  </li>
+                {% endfor %}
+              {% else %}
+                <li class="list-group-item text-muted">No recent activity.</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
