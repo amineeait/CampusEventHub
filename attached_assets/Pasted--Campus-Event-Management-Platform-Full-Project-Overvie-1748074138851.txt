@@ -1,0 +1,73 @@
+________________________________________
+📚 Campus Event Management Platform – Full Project Overview
+🎯 Project Goal:
+This project is a Campus Event Management Platform designed for universities, aiming to simplify the process of organizing, registering for, and attending student events. The system will include role-based access control, event publishing, QR code attendance tracking, and participation analytics. It is being built for a Web Programming Course.
+________________________________________
+🧱 Technologies Used:
+🔹 Frontend:
+•	HTML5 – Structure of all pages
+•	CSS3 – Styling and responsive design
+•	JavaScript – Interactivity
+🔹 Backend:
+•	PHP – Server-side scripting
+🔹 Database:
+•	MySQL – Relational database system to store users, events, registrations, attendance, etc.
+________________________________________
+🧩 Core Features (as per project requirements):
+1. User Management Module 
+•	User roles:
+o	Admin
+o	Club Organizer
+o	Regular Student
+•	Functions:
+o	User registration and login
+o	Role-based dashboards
+o	Password change option
+o	Personal profile view and edit
+________________________________________
+2. Event Management Module 
+•	Create/Edit/Delete events (admin/organizer)
+•	Event details: title, description, time, location, category
+•	Search and filter events by category or date
+•	Upload poster images
+•	Display list of all upcoming and past events
+________________________________________
+3. Registration & Check-in Module 
+•	Students can register online for events
+•	Upon registration:
+o	A full Name is generated for each participant
+o	Organizers can use their full name during event check-in
+________________________________________
+4. Data Visualization Module 
+•	Calendar view of upcoming events
+•	Event participation statistics displayed in charts
+•	Rating system: users can rate events 1–5 stars and leave feedback
+________________________________________
+________________________________________
+🧮 Database Design (MySQL):
+Here are the main tables being used:
+•	users – stores user data with roles
+•	clubs – manages university clubs
+•	events – stores event details
+•	registrations – connects users and events
+•	attendance – stores QR-based check-ins
+•	ratings – stores user feedback
+•	photos – event photo gallery
+•	reminders – stores reminder flags per event/user
+________________________________________
+🛠️ Development Tools & Notes:
+•	Platform: Built and tested using Replit (PHP + MySQL setup)
+•	UI library: Bootstrap for responsive layout
+•	Error handling and validation implemented in both frontend and backend
+•	Open-source tools like phpqrcode and Chart.js used with attribution
+________________________________________
+🧪 Evaluation & Grading Criteria:
+•	Functionality completeness: 50%
+•	Code quality and documentation: 20%
+•	UI design and aesthetics: 15%
+•	Final documentation/report: 15%
+________________________________________
+✅ Summary:
+This full-featured web application provides students and staff with a centralized system to manage campus events, from creation to attendance tracking and analytics. It follows best practices in web development and showcases knowledge of PHP, MySQL, and frontend technologies.
+________________________________________
+
