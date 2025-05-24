@@ -286,6 +286,34 @@ def delete_club(club_id):
     return redirect(url_for('admin_clubs'))
 
 # Organizer routes
+@app.route('/organizer/create-club', methods=['GET', 'POST'])
+@login_required
+def organizer_create_club():
+    # Check if user is an organizer or admin
+    if not current_user.is_organizer() and not current_user.is_admin():
+        flash('You do not have permission to access this page', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    form = ClubForm()
+    if form.validate_on_submit():
+        logo_file = None
+        if form.logo.data:
+            logo_file = save_file(form.logo.data, 'uploads/club_logos')
+        
+        club = Club(
+            name=form.name.data,
+            description=form.description.data,
+            logo=logo_file,
+            admin_id=current_user.id
+        )
+        
+        db.session.add(club)
+        db.session.commit()
+        flash('Club created successfully! Now you can create events for this club.', 'success')
+        return redirect(url_for('organizer_dashboard'))
+    
+    return render_template('organizer/create_club.html', form=form)
+
 @app.route('/organizer/dashboard')
 @login_required
 def organizer_dashboard():

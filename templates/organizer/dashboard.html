@@ -282,7 +282,7 @@
             <h4 class="mb-0">Upcoming Check-ins</h4>
           </div>
           <div class="card-body">
-            {% set upcoming_checkins = events|selectattr('is_upcoming')|selectattr('start_time', 'le', now + timedelta(days=7))|list %}
+            {% set upcoming_checkins = events|selectattr('is_upcoming')|list %}
             {% if upcoming_checkins %}
               <div class="list-group">
                 {% for event in upcoming_checkins[:5] %}
