@@ -42,6 +42,20 @@
                 {% endif %}
               </div>
               
+              <div class="mb-3">
+                {{ form.role.label(class="form-label") }}
+                {% if form.role.errors %}
+                  {{ form.role(class="form-select is-invalid") }}
+                  <div class="invalid-feedback">
+                    {% for error in form.role.errors %}
+                      {{ error }}
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  {{ form.role(class="form-select") }}
+                {% endif %}
+              </div>
+              
               <div class="mb-3 form-check">
                 {{ form.remember(class="form-check-input") }}
                 {{ form.remember.label(class="form-check-label") }}

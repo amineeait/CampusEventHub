@@ -73,3 +73,85 @@ def allowed_file(filename, allowed_extensions):
 def get_events_by_date_range(start_date, end_date, events):
     """Filter events by date range"""
     return [event for event in events if start_date <= event.start_time <= end_date]
+
+def generate_qr_code(data, filename=None):
+    """Generate QR code from data and save to static/uploads/qrcodes"""
+    import qrcode
+    import os
+    from flask import current_app
+    
+    # Create QR code instance
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    
+    # Add data to the QR code
+    qr.add_data(data)
+    qr.make(fit=True)
+    
+    # Create an image from the QR code
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Create directory if it doesn't exist
+    qr_code_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'qrcodes')
+    os.makedirs(qr_code_dir, exist_ok=True)
+    
+    # Save the image
+    if filename:
+        file_path = os.path.join(qr_code_dir, filename)
+    else:
+        file_path = os.path.join(qr_code_dir, f"{uuid.uuid4().hex}.png")
+    
+    img.save(file_path)
+    
+    # Return the relative path for use in templates
+    return os.path.join('uploads', 'qrcodes', os.path.basename(file_path))
+
+def export_participant_list(event_id, format='excel'):
+    """Export participant list to Excel or CSV format"""
+    import pandas as pd
+    import os
+    from flask import current_app
+    from models import Event, Registration, User, Attendance
+    
+    # Get event and registrations
+    event = Event.query.get(event_id)
+    if not event:
+        return None
+    
+    # Create directory if it doesn't exist
+    export_dir = os.path.join(current_app.root_path, 'static', 'exports')
+    os.makedirs(export_dir, exist_ok=True)
+    
+    # Get registrations and attendances
+    registrations = Registration.query.filter_by(event_id=event_id).all()
+    attendances = Attendance.query.filter_by(event_id=event_id).all()
+    attended_user_ids = [attendance.user_id for attendance in attendances]
+    
+    # Prepare data for export
+    data = []
+    for registration in registrations:
+        user = User.query.get(registration.user_id)
+        if user:
+            data.append({
+                'ID': user.id,
+                'First Name': user.first_name,
+                'Last Name': user.last_name,
+                'Email': user.email,
+                'Registration Date': registration.registration_time.strftime('%Y-%m-%d %H:%M'),
+                'Attended': 'Yes' if user.id in attended_user_ids else 'No'
+            })
+    
+    # Create DataFrame
+    df = pd.DataFrame(data)
+    
+    # Export to Excel
+    filename = f"event_{event_id}_participants_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    file_path = os.path.join(export_dir, filename)
+    df.to_excel(file_path, index=False)
+    
+    # Return the relative path for download
+    return os.path.join('exports', filename)

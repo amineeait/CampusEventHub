@@ -33,9 +33,24 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard'))
+            # Check if the selected role matches the user's role
+            selected_role = form.role.data
+            
+            if selected_role == 'admin' and not user.is_admin():
+                flash('You do not have administrator privileges.', 'danger')
+            elif selected_role == 'organizer' and not (user.is_organizer() or user.is_admin()):
+                flash('You do not have organizer privileges.', 'danger')
+            else:
+                login_user(user, remember=form.remember.data)
+                next_page = request.args.get('next')
+                
+                # Direct to appropriate dashboard based on selected role
+                if selected_role == 'admin' and user.is_admin():
+                    return redirect(next_page or url_for('admin_dashboard'))
+                elif selected_role == 'organizer' and (user.is_organizer() or user.is_admin()):
+                    return redirect(next_page or url_for('organizer_dashboard'))
+                else:
+                    return redirect(next_page or url_for('student_dashboard'))
         else:
             flash('Login unsuccessful. Please check email and password.', 'danger')
     
