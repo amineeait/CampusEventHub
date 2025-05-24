@@ -657,6 +657,10 @@ def event_detail(event_id):
         rating_form.rating.data = user_rating.rating
         rating_form.feedback.data = user_rating.feedback
     
+    # Pass current datetime to template
+    from datetime import datetime
+    current_datetime = datetime.now()
+    
     return render_template('events/detail.html', 
                           event=event,
                           is_registered=is_registered,
@@ -666,7 +670,8 @@ def event_detail(event_id):
                           ratings=ratings,
                           avg_rating=avg_rating,
                           registrations_count=registrations_count,
-                          attendance_count=attendance_count)
+                          attendance_count=attendance_count,
+                          now=current_datetime)
 
 @app.route('/events/<int:event_id>/edit', methods=['GET', 'POST'])
 @login_required
