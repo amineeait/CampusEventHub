@@ -832,8 +832,11 @@ def events_calendar():
     events = Event.query.all()
     return render_template('events/calendar.html', events=events)
 
-@app.route('/api/events-calendar')
+@app.route('/events/calendar/data')
 def events_calendar_data():
+    start = request.args.get('start')
+    end = request.args.get('end')
+    
     events = Event.query.all()
     calendar_events = []
     
@@ -843,7 +846,8 @@ def events_calendar_data():
             'title': event.title,
             'start': event.start_time.isoformat(),
             'end': event.end_time.isoformat(),
-            'url': url_for('event_detail', event_id=event.id)
+            'url': url_for('event_detail', event_id=event.id),
+            'category': event.category
         })
     
     return jsonify(calendar_events)
