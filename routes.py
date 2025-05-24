@@ -8,7 +8,8 @@ from app import app, db
 from forms import (RegistrationForm, LoginForm, UpdateProfileForm, ChangePasswordForm,
                   ClubForm, EventForm, EventSearchForm, CheckInForm, RatingForm)
 from models import User, UserRole, Club, Event, Registration, Attendance, Rating, Photo, Reminder
-from utils import save_file, get_event_stats, get_user_events_stats
+from utils import (save_file, get_event_stats, get_user_events_stats, 
+                  generate_qr_code, export_participant_list)
 
 # Custom filters
 @app.template_filter('format_datetime')
@@ -383,11 +384,83 @@ def event_check_in(event_id):
     attendances = Attendance.query.filter_by(event_id=event_id).all()
     checked_in_users = [att.user for att in attendances]
     
+    # Generate QR code for check-in if it doesn't exist
+    qr_filename = f"event_{event_id}_checkin.png"
+    qr_path = os.path.join('static', 'uploads', 'qrcodes', qr_filename)
+    
+    if not os.path.exists(qr_path):
+        # Generate QR code data (URL to check-in page with event ID)
+        qr_data = url_for('event_qr_check_in', event_id=event_id, _external=True)
+        qr_image_path = generate_qr_code(qr_data, qr_filename)
+    else:
+        qr_image_path = os.path.join('uploads', 'qrcodes', qr_filename)
+    
     return render_template('organizer/check_in.html', 
                           event=event, 
                           form=form,
                           registered_users=registered_users,
-                          checked_in_users=checked_in_users)
+                          checked_in_users=checked_in_users,
+                          qr_image_path=qr_image_path)
+
+# QR code check-in route
+@app.route('/events/<int:event_id>/qr-check-in', methods=['GET', 'POST'])
+def event_qr_check_in(event_id):
+    # Get event
+    event = Event.query.get_or_404(event_id)
+    
+    # If user is logged in and registered for this event, check them in
+    if current_user.is_authenticated:
+        # Check if user is registered for this event
+        registration = Registration.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+        if not registration:
+            flash('You are not registered for this event', 'warning')
+            return redirect(url_for('event_detail', event_id=event_id))
+        
+        # Check if user already checked in
+        existing_attendance = Attendance.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+        if existing_attendance:
+            flash('You have already checked in to this event', 'info')
+            return redirect(url_for('event_detail', event_id=event_id))
+        
+        # Create attendance record
+        attendance = Attendance(user_id=current_user.id, event_id=event_id)
+        db.session.add(attendance)
+        db.session.commit()
+        
+        flash('You have been checked in successfully!', 'success')
+        return redirect(url_for('event_detail', event_id=event_id))
+    else:
+        # If not logged in, redirect to login page
+        flash('Please log in to check in to this event', 'info')
+        return redirect(url_for('login', next=url_for('event_qr_check_in', event_id=event_id)))
+
+# Export participants route
+@app.route('/organizer/events/<int:event_id>/export-participants')
+@login_required
+def export_participants(event_id):
+    # Check if user is an organizer or admin
+    if not current_user.is_organizer() and not current_user.is_admin():
+        flash('You do not have permission to access this feature', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Get event
+    event = Event.query.get_or_404(event_id)
+    
+    # Check if user is the event organizer or an admin
+    if event.organizer_id != current_user.id and not current_user.is_admin():
+        flash('You do not have permission to export data for this event', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Export participant list
+    from utils import export_participant_list
+    export_path = export_participant_list(event_id)
+    
+    if export_path:
+        flash('Participant list has been exported successfully', 'success')
+        return redirect(url_for('static', filename=export_path))
+    else:
+        flash('Failed to export participant list', 'danger')
+        return redirect(url_for('event_check_in', event_id=event_id))
 
 # Student routes
 @app.route('/student/dashboard')

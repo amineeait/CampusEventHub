@@ -21,6 +21,11 @@
         <a href="{{ url_for('organizer_events') }}" class="btn btn-outline-secondary ms-2">
           <i class="fas fa-arrow-left me-1"></i> Back
         </a>
+        <div class="mt-2">
+          <a href="{{ url_for('export_participants', event_id=event.id) }}" class="btn btn-success">
+            <i class="fas fa-file-excel me-1"></i> Export Participants
+          </a>
+        </div>
       </div>
     </div>
     
@@ -84,6 +89,27 @@
                 <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
               {% endif %}
             </div>
+          </div>
+        </div>
+        
+        <!-- QR Code for Check-in -->
+        <div class="card shadow-sm mt-4">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">QR Code Check-in</h4>
+          </div>
+          <div class="card-body text-center">
+            <p>Attendees can scan this QR code to check in to the event:</p>
+            <div class="qr-container mb-3">
+              {% if qr_image_path %}
+                <img src="{{ url_for('static', filename=qr_image_path) }}" alt="Check-in QR Code" class="img-fluid">
+              {% else %}
+                <div class="alert alert-warning">QR code not available</div>
+              {% endif %}
+            </div>
+            <p class="text-muted small">
+              <i class="fas fa-info-circle me-1"></i>
+              Display this QR code at your event entrance for easy check-in
+            </p>
           </div>
         </div>
       </div>
