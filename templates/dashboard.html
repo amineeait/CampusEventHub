@@ -16,13 +16,7 @@
   <script>
     // Redirect to the appropriate dashboard based on user role
     document.addEventListener('DOMContentLoaded', function() {
-      {% if current_user.is_admin() %}
-        window.location.href = "{{ url_for('admin_dashboard') }}";
-      {% elif current_user.is_organizer() %}
-        window.location.href = "{{ url_for('organizer_dashboard') }}";
-      {% else %}
-        window.location.href = "{{ url_for('student_dashboard') }}";
-      {% endif %}
+      window.location.href = "{% if current_user.is_admin() %}{{ url_for('admin_dashboard') }}{% elif current_user.is_organizer() %}{{ url_for('organizer_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}";
     });
   </script>
-{% endblock %}
+{% endblock %} 

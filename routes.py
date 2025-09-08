@@ -1,13 +1,12 @@
 import os
 from datetime import datetime, timedelta
-from flask import render_template, url_for, flash, redirect, request, jsonify, abort
+from flask import render_template, url_for, flash, redirect, request, jsonify, abort, send_from_directory
 from flask_login import login_user, current_user, logout_user, login_required
-from werkzeug.utils import secure_filename
 
 from app import app, db
 from forms import (RegistrationForm, LoginForm, UpdateProfileForm, ChangePasswordForm,
                   ClubForm, EventForm, EventSearchForm, CheckInForm, RatingForm)
-from models import User, UserRole, Club, Event, Registration, Attendance, Rating, Photo, Reminder
+from models import User, UserRole, Club, Event, Registration, Attendance, Rating
 from utils import (save_file, get_event_stats, get_user_events_stats, 
                   generate_qr_code, export_participant_list)
 
@@ -218,7 +217,8 @@ def admin_clubs():
         abort(403)
     
     clubs = Club.query.all()
-    return render_template('admin/clubs.html', clubs=clubs)
+    form = ClubForm()
+    return render_template('admin/clubs.html', clubs=clubs, form=form)
 
 @app.route('/admin/club/new', methods=['GET', 'POST'])
 @login_required
@@ -370,40 +370,48 @@ def event_check_in(event_id):
     form = CheckInForm()
     form.event_id.data = event_id
     
-    if form.validate_on_submit():
-        full_name = form.full_name.data
-        
-        # Find the user with this full name
-        users = User.query.all()
-        matching_user = None
-        
-        for user in users:
-            if user.get_full_name().lower() == full_name.lower():
-                matching_user = user
-                break
-        
-        if not matching_user:
-            flash('No user found with that name', 'danger')
+    try:
+        if form.validate_on_submit():
+            full_name = form.full_name.data.strip()
+            if not full_name:
+                flash('Full name is required.', 'danger')
+                return redirect(url_for('event_check_in', event_id=event_id))
+            
+            # Find the user with this full name
+            users = User.query.all()
+            matching_user = None
+            for user in users:
+                if user.get_full_name().lower() == full_name.lower():
+                    matching_user = user
+                    break
+            
+            if not matching_user:
+                flash('No user found with that name', 'danger')
+                return redirect(url_for('event_check_in', event_id=event_id))
+            
+            # Check if user is registered for this event
+            registration = Registration.query.filter_by(user_id=matching_user.id, event_id=event_id).first()
+            if not registration:
+                flash('This user is not registered for this event', 'warning')
+                return redirect(url_for('event_check_in', event_id=event_id))
+            
+            # Check if user already checked in
+            existing_attendance = Attendance.query.filter_by(user_id=matching_user.id, event_id=event_id).first()
+            if existing_attendance:
+                flash('This user has already checked in', 'info')
+                return redirect(url_for('event_check_in', event_id=event_id))
+            
+            # Create attendance record
+            attendance = Attendance(user_id=matching_user.id, event_id=event_id)
+            db.session.add(attendance)
+            db.session.commit()
+            
+            flash(f'{matching_user.get_full_name()} has been checked in successfully!', 'success')
             return redirect(url_for('event_check_in', event_id=event_id))
-        
-        # Check if user is registered for this event
-        registration = Registration.query.filter_by(user_id=matching_user.id, event_id=event_id).first()
-        if not registration:
-            flash('This user is not registered for this event', 'warning')
-            return redirect(url_for('event_check_in', event_id=event_id))
-        
-        # Check if user already checked in
-        existing_attendance = Attendance.query.filter_by(user_id=matching_user.id, event_id=event_id).first()
-        if existing_attendance:
-            flash('This user has already checked in', 'info')
-            return redirect(url_for('event_check_in', event_id=event_id))
-        
-        # Create attendance record
-        attendance = Attendance(user_id=matching_user.id, event_id=event_id)
-        db.session.add(attendance)
-        db.session.commit()
-        
-        flash(f'{matching_user.get_full_name()} has been checked in successfully!', 'success')
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        flash(f'An unexpected error occurred during check-in: {str(e)}', 'danger')
         return redirect(url_for('event_check_in', event_id=event_id))
     
     # Get list of registered users for this event
@@ -424,6 +432,9 @@ def event_check_in(event_id):
         qr_image_path = generate_qr_code(qr_data, qr_filename)
     else:
         qr_image_path = os.path.join('uploads', 'qrcodes', qr_filename)
+    # Ensure web-compatible path
+    qr_image_path = str(qr_image_path).replace('\\', '/').replace('\\', '/')
+    print('DEBUG: qr_image_path =', qr_image_path)
     
     return render_template('organizer/check_in.html', 
                           event=event, 
@@ -436,7 +447,7 @@ def event_check_in(event_id):
 @app.route('/events/<int:event_id>/qr-check-in', methods=['GET', 'POST'])
 def event_qr_check_in(event_id):
     # Get event
-    event = Event.query.get_or_404(event_id)
+    Event.query.get_or_404(event_id)
     
     # If user is logged in and registered for this event, check them in
     if current_user.is_authenticated:
@@ -482,12 +493,14 @@ def export_participants(event_id):
         return redirect(url_for('dashboard'))
     
     # Export participant list
-    from utils import export_participant_list
     export_path = export_participant_list(event_id)
+    print('DEBUG: export_path =', export_path)
     
     if export_path:
         flash('Participant list has been exported successfully', 'success')
-        return redirect(url_for('static', filename=export_path))
+        # Use send_from_directory for direct download
+        directory, filename = os.path.split(export_path)
+        return send_from_directory(os.path.join(app.root_path, 'static', directory), filename, as_attachment=True)
     else:
         flash('Failed to export participant list', 'danger')
         return redirect(url_for('event_check_in', event_id=event_id))
@@ -834,20 +847,32 @@ def events_calendar():
 
 @app.route('/events/calendar/data')
 def events_calendar_data():
-    start = request.args.get('start')
-    end = request.args.get('end')
+    request.args.get('start')
+    request.args.get('end')
     
     events = Event.query.all()
     calendar_events = []
+    # Define colors for categories
+    category_colors = {
+        'Academic': '#007bff',      # Blue
+        'Social': '#28a745',        # Green
+        'Cultural': '#fd7e14',     # Orange
+        'Sports': '#dc3545',       # Red
+        'Workshop': '#6f42c1',     # Purple
+        'Seminar': '#20c997',      # Teal
+    }
+    default_color = '#0dcaf0'      # Cyan for uncategorized
     
     for event in events:
+        color = category_colors.get(event.category, default_color)
         calendar_events.append({
             'id': event.id,
             'title': event.title,
             'start': event.start_time.isoformat(),
             'end': event.end_time.isoformat(),
             'url': url_for('event_detail', event_id=event.id),
-            'category': event.category
+            'category': event.category,
+            'color': color
         })
     
     return jsonify(calendar_events)

@@ -20,7 +20,8 @@ def save_file(file, folder):
         file_path = os.path.join(upload_path, unique_filename)
         file.save(file_path)
         
-        return os.path.join(folder, unique_filename)
+        # Always return a web-compatible path (forward slashes)
+        return os.path.join(folder, unique_filename).replace('\\', '/').replace('\\', '/')
     return None
 
 def format_datetime(value, format='%Y-%m-%d %H:%M'):
@@ -96,7 +97,7 @@ def generate_qr_code(data, filename=None):
     img.save(file_path)
     
     # Return the relative path for use in templates
-    return os.path.join('uploads', 'qrcodes', os.path.basename(file_path))
+    return os.path.join('uploads', 'qrcodes', os.path.basename(file_path)).replace('\\', '/').replace('\\', '/')
 
 def export_participant_list(event_id, format='excel'):
     """Export participant list to Excel or CSV format"""

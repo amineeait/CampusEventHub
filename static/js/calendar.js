@@ -17,7 +17,12 @@ function initializeCalendar() {
       right: 'dayGridMonth,timeGridWeek,listWeek'
     },
     themeSystem: 'bootstrap',
-    events: '/events/calendar/data',
+    events: {
+      url: '/events/calendar/data',
+      failure: function() {
+        alert('There was an error while fetching events!');
+      }
+    },
     eventTimeFormat: {
       hour: '2-digit',
       minute: '2-digit',
@@ -31,6 +36,13 @@ function initializeCalendar() {
         document.getElementById('loading-indicator').style.display = 'block';
       } else {
         document.getElementById('loading-indicator').style.display = 'none';
+      }
+    },
+    eventDidMount: function(info) {
+      // Set the background color of the event
+      if (info.event.extendedProps.color) {
+        info.el.style.backgroundColor = info.event.extendedProps.color;
+        info.el.style.borderColor = info.event.extendedProps.color;
       }
     }
   });
