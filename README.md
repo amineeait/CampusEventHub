@@ -144,7 +144,7 @@ This project strengthened my expertise in Flask development, database modeling, 
 👨‍💻 Developer
 
 Mohamed Amine Ait El Mahjoub
-🎓 Final-year Computer Science and Technology Student (GPA: 3.51)
+🎓 Final-year Computer Science and Technology Student (GPA: 3.51)                                                             
 📍 China Jiliang University
 📧 mohamedamineaitelmahjoub@gmail.com
 
